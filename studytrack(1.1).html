@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyTrack — Study Session Tracker (HSC Software Engineering Scaffold)</title>
+    <style>
+        /* === CSS DESIGN & THEMING === 
+           Designed with modern, responsive principles. 
+           Using CSS custom properties (variables) so students can easily customize themes. */
+        :root {
+            --primary-color: #4f46e5;       /* Indigo */
+            --primary-hover: #4338ca;
+            --secondary-color: #0f172a;     /* Dark Slate */
+            --bg-light: #f8fafc;            /* Off-white */
+            --card-bg: #ffffff;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header Styling */
+        header {
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        header h1 {
+            font-size: 1.75rem;
+            color: var(--secondary-color);
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Notifications & Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .badge-user { background-color: #dbeafe; color: #1e40af; }
+        .badge-admin { background-color: #fef3c7; color: #92400e; }
+
+        /* Auth Container (Login Screen) */
+        .auth-container {
+            max-width: 450px;
+            margin: 5rem auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Layout Grid for Main App */
+        .app-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .app-grid {
+                grid-template-columns: 1fr 2fr;
+            }
+        }
+
+        /* Card Panels */
+        .panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .panel h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        /* Forms styling */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-dark);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+        }
+
+        /* Buttons styling */
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover { background-color: var(--primary-hover); }
+        .btn-danger { background-color: var(--danger-color); }
+        .btn-danger:hover { background-color: #dc2626; }
+        .btn-secondary { background-color: var(--text-muted); }
+        .btn-secondary:hover { background-color: #475569; }
+
+        /* Tables styling */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+
+        /* Action buttons inside lists */
+        .action-btns {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btns button {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        /* Chart Canvas */
+        .chart-container {
+            margin-top: 15px;
+            background: #ffffff;
+            border: 1px dashed #bbf7d0;
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        /* Educational helper container */
+        .edu-notes {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin-top: 2rem;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.85rem;
+        }
+
+        .edu-notes h3 { color: #1e3a8a; margin-bottom: 0.5rem;}
+        .edu-notes ul { margin-left: 1.25rem; }
+
+        /* Hide logic for single-page dashboard switching */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- HEADER MODULE -->
+        <header>
+            <div>
+                <h1>StudyTrack — Study Session Tracker</h1>
+                <p>HSC Software Engineering Task #3 Scaffold (Band 4/5 Standard Template)</p>
+            </div>
+            <div id="user-info-bar" class="hidden">
+                <span id="welcome-text"></span>
+                <span id="role-badge" class="badge"></span>
+                <button class="btn btn-secondary" onclick="app.logout()" style="margin-left: 10px;">Logout</button>
+            </div>
+        </header>
+
+        <!-- AUTH SCREEN (LOGIN & REGISTER) -->
+        <div id="auth-screen" class="auth-container">
+            <h2 style="margin-bottom: 1rem; font-size: 1.5rem; text-align: center;">System Access</h2>
+            
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn" style="width:100%;">Access Account</button>
+            </form>
+
+            <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; font-size: 0.85rem;">
+                <p><strong>Demo Logins (Pre-seeded in LocalStorage):</strong></p>
+                <ul style="margin-left: 1.25rem; margin-top: 0.25rem;">
+                    <li><strong>Regular User:</strong> student1 / study2026</li>
+                    <li><strong>Admin User:</strong> admin1 / secureadmin</li>
+                </ul>
+                <p style="margin-top: 0.5rem; color: var(--text-muted); font-style: italic;">
+                    *Passwords are hashed on login attempt using standard browser cryptographic operations (SHA-256).
+                </p>
+            </div>
+        </div>
+
+        <!-- MAIN APP CONTENT (DASHBOARD) -->
+        <div id="main-dashboard" class="app-grid hidden">
+            
+            <!-- LEFT COLUMN: CRUD FORM & ML INTEGRATION -->
+            <div>
+                <!-- Form Module (Covers Create and Update) -->
+                <div class="panel">
+                    <h2 id="form-title">Log Study Session</h2>
+                    <form id="session-form">
+                        <input type="hidden" id="session-id"> <!-- Hidden input to track unique identifier for Update operations -->
+                        
+                        <div class="form-group">
+                            <label for="subject">Subject / Area</label>
+                            <input type="text" id="subject" placeholder="e.g. Software Engineering, Math Ext 1" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="session-date">Date Completed</label>
+                            <input type="date" id="session-date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="duration">Duration (Hours)</label>
+                            <input type="number" id="duration" step="0.5" min="0.5" max="24" placeholder="e.g. 1.5" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="notes">Progress Notes & Reflection</label>
+                            <textarea id="notes" rows="3" placeholder="Describe the focus and any issues resolved..."></textarea>
+                        </div>
+                        
+                        <div class="action-btns">
+                            <button type="submit" id="submit-btn" class="btn">Save Entry</button>
+                            <button type="button" id="cancel-btn" class="btn btn-secondary hidden" onclick="app.resetForm()">Cancel Edit</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ML Automation Component (Heuristic Predictive Model Scaffold) -->
+                <div class="panel" style="background-color: #f0fdf4; border-color: #bbf7d0;">
+                    <h2 style="color: #166534; border-bottom-color: #bbf7d0;">🤖 Machine Learning Automated Insight</h2>
+                    <p style="font-size: 0.85rem; color: #166534; margin-bottom: 1rem;">
+                        This system uses a simple <strong>Linear Regression Algorithm</strong> ($y = mx + c$) executed locally in client-side code to evaluate study durations and forecast upcoming requirements.
+                    </p>
+                    <div id="ml-result">
+                        <p style="font-style: italic; color: var(--text-muted);">Please add at least 2 study entries to compute standard analytical forecasts.</p>
+                    </div>
+                    <!-- HTML5 CANVAS: Visualization Area -->
+                    <div id="chart-wrapper" class="chart-container hidden">
+                        <canvas id="regression-chart" width="400" height="220" style="width: 100%; height: auto; display: block;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: SESSIONS LISTING (Read and Delete) -->
+            <div>
+                <div class="panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;">
+                        <h2 style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">Log History</h2>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);" id="visibility-scope">
+                            Scope: Personal View
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table id="sessions-table">
+                            <thead>
+                                <tr>
+                                    <th id="th-user" class="hidden">Student</th>
+                                    <th>Subject</th>
+                                    <th>Date</th>
+                                    <th>Duration (hrs)</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sessions-list">
+                                <!-- Populated dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- /main-dashboard -->
+
+        <!-- SYLLABUS CORRELATIONS FOR HSC STUDENTS -->
+        <div class="edu-notes">
+            <h3>📖 Syllabus Connection & Educational Implementation Notes</h3>
+            <p>This implementation supports the <strong>HSC Software Engineering</strong> curriculum with clear, accessible code structural targets:</p>
+            <ul style="margin-top: 0.5rem;">
+                <li><strong>Security (Password Hashing):</strong> Relies on the standard browser Web Crypto API (SHA-256) inside the authentication routine to prevent plain-text configuration.</li>
+                <li><strong>Database Mock (CRUD):</strong> Implements Create, Read, Update, and Delete actions using standard structured keys in the client browser's memory wrapper (`localStorage`).</li>
+                <li><strong>Interactive Graphics (HTML5 Canvas Mapping):</strong> Draws custom points and math structures programmatically. This demonstrates coordinate translation and layout scaling equations using standard programming structures.</li>
+                <li><strong>Algorithms & ML:</strong> Standard JS loops process arrays to dynamically calculate mathematical parameters (slope, intercept) without external third-party model libraries.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- === JAVASCRIPT LOGIC === -->
+    <script>
+        /**
+         * StudyTrack Application Namespace
+         * Isolating state data from global scope variables is recommended software development practice.
+         */
+        const app = {
+            // Simulated State Storage
+            state: {
+                users: [],
+                sessions: [],
+                currentUser: null,
+                currentEditingSessionId: null
+            },
+
+            // SHA-256 Hashing Algorithm helper
+            // Utilises standard browser Web Crypto API (asynchronous digest)
+            hashPassword: async function(password) {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(password);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            },
+
+            /**
+             * Seed the Mock Database inside LocalStorage
+             * Ensures there is immediately data to interact with upon first download/execution.
+             */
+            initDatabase: async function() {
+                // Initialize default users if storage is empty
+                if (!localStorage.getItem('studytrack_users')) {
+                    const defaultUsers = [
+                        { id: "u1", username: "student1", passwordHash: await this.hashPassword("study2026"), isAdmin: false },
+                        { id: "u2", username: "admin1", passwordHash: await this.hashPassword("secureadmin"), isAdmin: true }
+                    ];
+                    localStorage.setItem('studytrack_users', JSON.stringify(defaultUsers));
+                }
+
+                // Initialize default study sessions if storage is empty
+                // Setup with exactly 4 entries matching the scenario parameters
+                if (!localStorage.getItem('studytrack_sessions')) {
+                    const defaultSessions = [
+                        { id: "s1", userId: "u1", subject: "Software Engineering", date: "2026-04-28", duration: 2.5, notes: "Configured local GitHub repository and planned Gantt timeline milestones." },
+                        { id: "s2", userId: "u1", subject: "Software Engineering", date: "2026-05-12", duration: 3.5, notes: "Integrated SQL filters and resolved active routing error in update routine." },
+                        { id: "s3", userId: "u1", subject: "Math Ext 1", date: "2026-05-14", duration: 1.5, notes: "Practised vectors application problems." },
+                        { id: "s4", userId: "u1", subject: "Software Engineering", date: "2026-05-20", duration: 2.0, notes: "Finished documentation requirements." }
+                    ];
+                    localStorage.setItem('studytrack_sessions', JSON.stringify(defaultSessions));
+                }
+
+                // Load operational collections into local script memory
+                this.state.users = JSON.parse(localStorage.getItem('studytrack_users'));
+                this.state.sessions = JSON.parse(localStorage.getItem('studytrack_sessions'));
+            },
+
+            /**
+             * App Initialization Routing
+             */
+            init: async function() {
+                await this.initDatabase();
+
+                // Assign main form event listener
+                document.getElementById('login-form').addEventListener('submit', (e) => this.handleLogin(e));
+                document.getElementById('session-form').addEventListener('submit', (e) => this.handleSessionSubmit(e));
+
+                // Support session restoration if already marked logged in
+                const sessionUser = sessionStorage.getItem('studytrack_active_user');
+                if (sessionUser) {
+                    this.state.currentUser = JSON.parse(sessionUser);
+                    this.showDashboard();
+                }
+            },
+
+            /**
+             * Authentication Logic
+             */
+            handleLogin: async function(event) {
+                event.preventDefault();
+                const userVal = document.getElementById('username').value.trim();
+                const passVal = document.getElementById('password').value;
+
+                // Hash input and compare with stored records
+                const inputHash = await this.hashPassword(passVal);
+                const matchedUser = this.state.users.find(u => u.username.toLowerCase() === userVal.toLowerCase() && u.passwordHash === inputHash);
+
+                if (matchedUser) {
+                    this.state.currentUser = { id: matchedUser.id, username: matchedUser.username, isAdmin: matchedUser.isAdmin };
+                    sessionStorage.setItem('studytrack_active_user', JSON.stringify(this.state.currentUser));
+                    
+                    // Reset login form fields
+                    document.getElementById('username').value = "";
+                    document.getElementById('password').value = "";
+                    
+                    this.showDashboard();
+                } else {
+                    alert("Invalid credentials provided. Review instructions below for demo accounts.");
+                }
+            },
+
+            logout: function() {
+                this.state.currentUser = null;
+                this.state.currentEditingSessionId = null;
+                sessionStorage.removeItem('studytrack_active_user');
+                
+                // Toggle element states
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('main-dashboard').classList.add('hidden');
+                document.getElementById('user-info-bar').classList.add('hidden');
+            },
+
+            /**
+             * UI Navigation State Changes
+             */
+            showDashboard: function() {
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('main-dashboard').classList.remove('hidden');
+                
+                // Show standard user metadata
+                const infoBar = document.getElementById('user-info-bar');
+                const welcomeText = document.getElementById('welcome-text');
+                const roleBadge = document.getElementById('role-badge');
+                
+                welcomeText.textContent = `User: ${this.state.currentUser.username}`;
+                roleBadge.textContent = this.state.currentUser.isAdmin ? "Administrator" : "Student";
+                roleBadge.className = `badge ${this.state.currentUser.isAdmin ? 'badge-admin' : 'badge-user'}`;
+                infoBar.classList.remove('hidden');
+
+                // Toggle elements if active user status is Admin
+                const thUser = document.getElementById('th-user');
+                const scopeText = document.getElementById('visibility-scope');
+                if (this.state.currentUser.isAdmin) {
+                    thUser.classList.remove('hidden');
+                    scopeText.textContent = "Scope: Complete DB View (Admin Mode)";
+                } else {
+                    thUser.classList.add('hidden');
+                    scopeText.textContent = "Scope: Individual Records";
+                }
+
+                // Reset standard values on page components
+                this.resetForm();
+                this.renderSessions();
+            },
+
+            /**
+             * CRUD Action: Read & Display Interface
+             */
+            renderSessions: function() {
+                const tbody = document.getElementById('sessions-list');
+                tbody.innerHTML = "";
+
+                // Filter records depending on active role capabilities
+                const viewRecords = this.state.currentUser.isAdmin 
+                    ? this.state.sessions 
+                    : this.state.sessions.filter(s => s.userId === this.state.currentUser.id);
+
+                if (viewRecords.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="${this.state.currentUser.isAdmin ? 6 : 5}" style="text-align: center; color: var(--text-muted);">No entries cataloged. Log a session to populate logs.</td></tr>`;
+                    this.renderMachineLearningPredictor([]);
+                    return;
+                }
+
+                // Populate records inside tables
+                viewRecords.forEach(session => {
+                    const tr = document.createElement('tr');
+                    
+                    // Match associated username structure
+                    const owner = this.state.users.find(u => u.id === session.userId);
+                    const ownerName = owner ? owner.username : "Unknown User";
+
+                    let actionButtonsHtml = `
+                        <div class="action-btns">
+                            <button class="btn btn-secondary" onclick="app.editSession('${session.id}')">Edit</button>
+                            <button class="btn btn-danger" onclick="app.deleteSession('${session.id}')">Delete</button>
+                        </div>
+                    `;
+
+                    // Simple standard HTML mapping structure
+                    tr.innerHTML = `
+                        ${this.state.currentUser.isAdmin ? `<td><strong>${ownerName}</strong></td>` : ''}
+                        <td>${this.escapeHTML(session.subject)}</td>
+                        <td>${session.date}</td>
+                        <td>${session.duration} hours</td>
+                        <td style="max-width: 250px; font-size: 0.85rem;">${this.escapeHTML(session.notes)}</td>
+                        <td>${actionButtonsHtml}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Calculate ML insights for the logged-in target array
+                const targetDurations = viewRecords.map(s => Number(s.duration));
+                this.renderMachineLearningPredictor(targetDurations);
+            },
+
+            /**
+             * CRUD Action: Create & Update Save Form Handler
+             */
+            handleSessionSubmit: function(event) {
+                event.preventDefault();
+
+                const idField = document.getElementById('session-id').value;
+                const subjectVal = document.getElementById('subject').value.trim();
+                const dateVal = document.getElementById('session-date').value;
+                const durationVal = parseFloat(document.getElementById('duration').value);
+                const notesVal = document.getElementById('notes').value.trim();
+
+                if (!subjectVal || !dateVal || isNaN(durationVal)) {
+                    alert("Please verify all data inputs are complete.");
+                    return;
+                }
+
+                if (idField) {
+                    // --- UPDATE OPERATION ---
+                    // Locating index based on verified system identifier
+                    const targetIndex = this.state.sessions.findIndex(s => s.id === idField);
+                    
+                    if (targetIndex !== -1) {
+                        // Validate permission scope checks
+                        const originalRecord = this.state.sessions[targetIndex];
+                        if (originalRecord.userId !== this.state.currentUser.id && !this.state.currentUser.isAdmin) {
+                            alert("Action denied: Access privileges do not match this entry.");
+                            this.resetForm();
+                            return;
+                        }
+
+                        // Maintain metadata or update parameters
+                        this.state.sessions[targetIndex] = {
+                            ...originalRecord,
+                            subject: subjectVal,
+                            date: dateVal,
+                            duration: durationVal,
+                            notes: notesVal
+                        };
+                        
+                        alert("Session record successfully updated.");
+                    }
+                } else {
+                    // --- CREATE OPERATION ---
+                    const newRecord = {
+                        id: 's_' + Date.now(), // Unique identity identifier generator
+                        userId: this.state.currentUser.id,
+                        subject: subjectVal,
+                        date: dateVal,
+                        duration: durationVal,
+                        notes: notesVal
+                    };
+
+                    this.state.sessions.push(newRecord);
+                    alert("New study record logged.");
+                }
+
+                // Persist new state storage context
+                localStorage.setItem('studytrack_sessions', JSON.stringify(this.state.sessions));
+                this.resetForm();
+                this.renderSessions();
+            },
+
+            /**
+             * CRUD Action: Populate Fields for Update
+             */
+            editSession: function(sessionId) {
+                const targetRecord = this.state.sessions.find(s => s.id === sessionId);
+                if (!targetRecord) return;
+
+                // Permission Scope protection rule
+                if (targetRecord.userId !== this.state.currentUser.id && !this.state.currentUser.isAdmin) {
+                    alert("Unauthorized: You do not own this log entry.");
+                    return;
+                }
+
+                // Feed components UI elements
+                document.getElementById('session-id').value = targetRecord.id;
+                document.getElementById('subject').value = targetRecord.subject;
+                document.getElementById('session-date').value = targetRecord.date;
+                document.getElementById('duration').value = targetRecord.duration;
+                document.getElementById('notes').value = targetRecord.notes;
+
+                // Adjust Form headings and cancel displays
+                document.getElementById('form-title').textContent = "Modify Session Details";
+                document.getElementById('submit-btn').textContent = "Apply Changes";
+                document.getElementById('cancel-btn').classList.remove('hidden');
+
+                // Shift focus to main fields for input efficiency
+                document.getElementById('subject').focus();
+            },
+
+            /**
+             * CRUD Action: Delete Operation
+             */
+            deleteSession: function(sessionId) {
+                const targetIndex = this.state.sessions.findIndex(s => s.id === sessionId);
+                if (targetIndex === -1) return;
+
+                const targetRecord = this.state.sessions[targetIndex];
+                
+                // Assert permissions
+                if (targetRecord.userId !== this.state.currentUser.id && !this.state.currentUser.isAdmin) {
+                    alert("Unauthorized: Access permissions incorrect.");
+                    return;
+                }
+
+                // Dialog prompt verification step
+                const confirmed = confirm("Are you sure you want to permanently delete this study record?");
+                if (confirmed) {
+                    this.state.sessions.splice(targetIndex, 1);
+                    localStorage.setItem('studytrack_sessions', JSON.stringify(this.state.sessions));
+                    this.renderSessions();
+                }
+            },
+
+            /**
+             * Form Interface Cleaner State
+             */
+            resetForm: function() {
+                document.getElementById('session-id').value = "";
+                document.getElementById('session-form').reset();
+                
+                document.getElementById('form-title').textContent = "Log Study Session";
+                document.getElementById('submit-btn').textContent = "Save Entry";
+                document.getElementById('cancel-btn').classList.add('hidden');
+                
+                // Set default date value inside input matching current day context
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('session-date').value = today;
+            },
+
+            /**
+             * Automated Machine Learning Model Component
+             * Implements standard Linear Regression math algorithms natively.
+             * Formula: Y = mX + c 
+             * where X represents chronological session count sequence, and Y represents study length duration.
+             */
+            renderMachineLearningPredictor: function(durations) {
+                const displayArea = document.getElementById('ml-result');
+                const chartWrapper = document.getElementById('chart-wrapper');
+                
+                // At least two historical records are needed to calculate a line slope
+                if (durations.length < 2) {
+                    displayArea.innerHTML = `
+                        <p style="font-style: italic; color: #15803d;">
+                            Insufficient historical records. Log at least 2 sessions to run regression algorithms.
+                        </p>
+                    `;
+                    chartWrapper.classList.add('hidden');
+                    return;
+                }
+
+                const n = durations.length;
+                let sumX = 0;   // Session index sequence
+                let sumY = 0;   // Associated duration value
+                let sumXY = 0;  // Multiplied coordinates
+                let sumXX = 0;  // Squared Index values
+
+                for (let i = 0; i < n; i++) {
+                    const x = i + 1; // Index represents chronological order (1, 2, 3...)
+                    const y = durations[i];
+                    sumX += x;
+                    sumY += y;
+                    sumXY += x * y;
+                    sumXX += x * x;
+                }
+
+                // Compute standard Least Squares regression slope (m) and intercept (c)
+                // Slope (m) = (N * ΣXY - ΣX * ΣY) / (N * ΣXX - (ΣX)^2)
+                const slopeNumerator = (n * sumXY) - (sumX * sumY);
+                const slopeDenominator = (n * sumXX) - (sumX * sumX);
+                
+                let slope = 0;
+                if (slopeDenominator !== 0) {
+                    slope = slopeNumerator / slopeDenominator;
+                }
+                
+                // Intercept (c) = (ΣY - m * ΣX) / N
+                const intercept = (sumY - (slope * sumX)) / n;
+
+                // Predict Next Duration step sequence (n + 1 index)
+                const nextXPosition = n + 1;
+                const rawPredictionVal = (slope * nextXPosition) + intercept;
+                
+                // Cap predictions realistic baseline floor at 0.5 hours minimal
+                const prediction = Math.max(0.5, rawPredictionVal).toFixed(2);
+
+                // Analyze historical behavior trends
+                let evaluationTrend = "";
+                let trendColor = "#1e293b";
+                if (slope > 0.05) {
+                    evaluationTrend = "Increasing workload behavior detected. Plan for extra study sessions.";
+                    trendColor = "#15803d"; // Greenish
+                } else if (slope < -0.05) {
+                    evaluationTrend = "Decreasing study hours detected. Monitor to stay on track.";
+                    trendColor = "#b45309"; // Amber/Orange
+                } else {
+                    evaluationTrend = "Stable workload behavior observed. Continue this routine.";
+                    trendColor = "#1e3a8a"; // Blueish
+                }
+
+                displayArea.innerHTML = `
+                    <div style="background-color: #ffffff; padding: 0.75rem; border-radius: 6px; border: 1px solid #bbf7d0; margin-bottom: 10px;">
+                        <p style="margin-bottom: 0.5rem; font-size: 0.9rem;">
+                            <strong>Analytical Forecast (Next Session):</strong> <span style="font-size: 1.1rem; color: #15803d; font-weight: bold;">${prediction} hrs</span>
+                        </p>
+                        <p style="font-size: 0.8rem; color: ${trendColor}; line-height: 1.4;">
+                            <strong>Statistical Trend:</strong> ${evaluationTrend}<br>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">
+                                Parameters calculated: Slope (m) = ${slope.toFixed(3)}, Intercept (c) = ${intercept.toFixed(3)} (Based on ${n} logged entries)
+                            </span>
+                        </p>
+                    </div>
+                `;
+
+                // Display chart and render coordinates dynamically
+                chartWrapper.classList.remove('hidden');
+                this.drawRegressionChart(durations, slope, intercept, prediction);
+            },
+
+            /**
+             * GRAPHICS SUB-SYSTEM: Draw Interactive Regression Visualisation
+             * Translates mathematically evaluated coordinates into pixel points mapping on HTML5 Canvas.
+             */
+            drawRegressionChart: function(durations, slope, intercept, prediction) {
+                const canvas = document.getElementById('regression-chart');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                
+                // Clear drawing canvas completely
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                const padding = 35;
+                const chartWidth = canvas.width - padding * 2;
+                const chartHeight = canvas.height - padding * 2;
+                
+                const n = durations.length;
+                const maxX = n + 1; // Include predictions index as final step
+                const maxY = Math.max(...durations, parseFloat(prediction), 4) + 0.5; // Bounds scale buffer
+
+                // Translation math structures (maps data variables to absolute canvas space pixels)
+                const getCanvasX = (x) => padding + ((x - 1) / (maxX - 1)) * chartWidth;
+                const getCanvasY = (y) => (canvas.height - padding) - (y / maxY) * chartHeight;
+
+                // --- 1. DRAW BACKGROUND COORDINATE GRID ---
+                ctx.strokeStyle = '#f1f5f9';
+                ctx.lineWidth = 1;
+                ctx.fillStyle = '#64748b';
+                ctx.font = '10px sans-serif';
+                ctx.textAlign = 'right';
+
+                const gridLinesCount = 4;
+                for (let i = 0; i <= gridLinesCount; i++) {
+                    const gridYVal = (maxY / gridLinesCount) * i;
+                    const canvasYCoord = getCanvasY(gridYVal);
+
+                    // Draw Horizontal Guides
+                    ctx.beginPath();
+                    ctx.moveTo(padding, canvasYCoord);
+                    ctx.lineTo(canvas.width - padding, canvasYCoord);
+                    ctx.stroke();
+
+                    // Print vertical axis scale strings
+                    ctx.fillText(gridYVal.toFixed(1) + "h", padding - 5, canvasYCoord + 3);
+                }
+
+                // --- 2. PLOT LINEAR REGRESSION LINE (y = mx + c) ---
+                ctx.strokeStyle = '#10b981'; // Green theme trend line
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                
+                const regressionStart_X = 1;
+                const regressionStart_Y = slope * regressionStart_X + intercept;
+                const regressionEnd_X = maxX;
+                const regressionEnd_Y = slope * regressionEnd_X + intercept;
+
+                ctx.moveTo(getCanvasX(regressionStart_X), getCanvasY(regressionStart_Y));
+                ctx.lineTo(getCanvasX(regressionEnd_X), getCanvasY(regressionEnd_Y));
+                ctx.stroke();
+
+                // --- 3. DRAW MEASURED HISTORICAL POINTS ---
+                durations.forEach((yVal, index) => {
+                    const sessionNum = index + 1;
+                    const pointX = getCanvasX(sessionNum);
+                    const pointY = getCanvasY(yVal);
+
+                    // Solid connection trace lines
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(pointX, getCanvasY(0));
+                    ctx.lineTo(pointX, pointY);
+                    ctx.stroke();
+
+                    // Node dot drawing parameters
+                    ctx.fillStyle = '#4f46e5'; // Theme Primary (Indigo)
+                    ctx.beginPath();
+                    ctx.arc(pointX, pointY, 5, 0, 2 * Math.PI);
+                    ctx.fill();
+
+                    // Display Label Metadata directly over points
+                    ctx.fillStyle = '#1e293b';
+                    ctx.font = '10px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`S${sessionNum}`, pointX, pointY - 10);
+                });
+
+                // --- 4. DRAW SYSTEM FORECAST/PREDICTED NODE ---
+                const predictX = maxX;
+                const predictY = parseFloat(prediction);
+                const pCanvasX = getCanvasX(predictX);
+                const pCanvasY = getCanvasY(predictY);
+
+                // Dotted prediction axis line vertical drop
+                ctx.strokeStyle = '#f59e0b'; // Amber theme
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(pCanvasX, pCanvasY);
+                ctx.lineTo(pCanvasX, getCanvasY(0));
+                ctx.stroke();
+                ctx.setLineDash([]); // Restore normal drawing brush path style
+
+                // Draw Predicted Point Outer Frame Glowing Effect
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.arc(pCanvasX, pCanvasY, 7, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(pCanvasX, pCanvasY, 7, 0, 2 * Math.PI);
+                ctx.stroke();
+
+                // Inner core point marker
+                ctx.fillStyle = '#b45309';
+                ctx.beginPath();
+                ctx.arc(pCanvasX, pCanvasY, 3, 0, 2 * Math.PI);
+                ctx.fill();
+
+                // Output descriptive forecast header labels
+                ctx.fillStyle = '#b45309';
+                ctx.font = 'bold 9px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("Next", pCanvasX, pCanvasY - 12);
+
+                // --- 5. DRAW BOTTOM AXIS LABEL STEPS ---
+                ctx.fillStyle = '#64748b';
+                ctx.font = '9px sans-serif';
+                ctx.textAlign = 'center';
+                for (let i = 1; i <= maxX; i++) {
+                    const stepLabel = (i === maxX) ? "Next (Pred)" : `S${i}`;
+                    ctx.fillText(stepLabel, getCanvasX(i), canvas.height - padding + 15);
+                }
+            },
+
+            /**
+             * Security Helper Utility
+             * Essential mitigation protection parameter targeting cross-site scripting (XSS) exposures.
+             */
+            escapeHTML: function(str) {
+                if (!str) return '';
+                return str.replace(/&/g, "&amp;")
+                          .replace(/</g, "&lt;")
+                          .replace(/>/g, "&gt;")
+                          .replace(/"/g, "&quot;")
+                          .replace(/'/g, "&#039;");
+            }
+        };
+
+        // Initialize application when browser layout is ready
+        window.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
+</body>
+</html>
